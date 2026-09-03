@@ -1,7 +1,7 @@
 import torch
 from abc import abstractmethod
 from hydra.utils import instantiate
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, random_split, Subset
 
 from src.experiments.base_experiment import BaseExperiment
 from src.utils.dataset import LightconeData
@@ -159,6 +159,35 @@ class TrainingExperiment(BaseExperiment):
     def split_dataset(self, dset):
 
         dcfg = self.cfg.data
+
+        # CHANGED 2026-05-19: added optional `data.split_indices_path` config
+        # field. When set, train/val/test indices are loaded from a canonical
+        # .npz file (with arrays `train`, `val`, `test` and metadata fields).
+        # This is the mechanism used for the data-scaling experiment so that
+        # every budget shares the same held-out test set, and ViT(Loreli)
+        # training-time splits align with the EoRFlow CFM splits.
+        # The legacy random_split path is preserved as the fallback when the
+        # new key is absent.
+        split_indices_path = dcfg.get("split_indices_path", None) if hasattr(dcfg, "get") else getattr(dcfg, "split_indices_path", None)
+        if split_indices_path is not None:
+            import numpy as _np
+            self.log.info(f"Loading split indices from {split_indices_path}")
+            sp = _np.load(split_indices_path)
+            train_idx = sp["train"].astype(int).tolist()
+            val_idx   = sp["val"].astype(int).tolist()
+            test_idx  = sp["test"].astype(int).tolist()
+            expected_total = int(sp["total"].item()) if "total" in sp.files else len(dset)
+            if expected_total != len(dset):
+                raise RuntimeError(
+                    f"split_indices_path total ({expected_total}) does not match dataset size "
+                    f"({len(dset)}). Refusing to proceed silently."
+                )
+            train_subset = Subset(dset, train_idx)
+            val_subset   = Subset(dset, val_idx)
+            test_subset  = Subset(dset, test_idx)
+            self.log.info(f"Dataset split from file: train={len(train_subset)}, "
+                     f"val={len(val_subset)}, test={len(test_subset)}")
+            return [train_subset, val_subset, test_subset]
 
         # create splits
         assert dcfg.val_frac > 0, "A validation split is required"

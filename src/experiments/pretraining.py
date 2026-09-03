@@ -18,7 +18,17 @@ class PretrainingExperiment(TrainingExperiment):
 
         mask_cfg = self.cfg.masking
 
-        return JEPACollator(self.preprocessing, num_patches, mask_cfg)
+        # CHANGED 2026-05-13: forward self.augmentations and the `training` flag to
+        # JEPACollator so that augmentations configured under cfg.training.augmentations
+        # are actually applied (training split only). Previously augmentations were
+        # loaded by init_augmentations() but silently dropped here.
+        return JEPACollator(
+            self.preprocessing,
+            num_patches,
+            mask_cfg,
+            augmentations=self.augmentations,
+            training=training,
+        )
 
     @torch.inference_mode()
     def evaluate(self, dataloaders):
@@ -26,3 +36,4 @@ class PretrainingExperiment(TrainingExperiment):
 
     def plot(self):
         pass
+    

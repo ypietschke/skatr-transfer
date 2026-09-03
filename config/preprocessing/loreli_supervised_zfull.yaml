@@ -1,0 +1,16 @@
+# Loreli (clean) at full z=5..15 supervised preprocessing.
+# ShiftMedian = -25 mK matches the dataset-level voxel median of the
+# full-z clean Loreli set; this centres the bulk of voxels near 0 before
+# the symmetric-log Clamp transform, putting them in its linear regime.
+x:
+  - {_target_: src.utils.transforms.AddSingletonChannel}
+  - {_target_: src.utils.transforms.ShiftMedian, median: -25.0}
+  - {_target_: src.utils.transforms.Clamp}
+
+y:
+  - {
+    _target_: src.utils.transforms.Center,
+    lo: [0.1, 738.9, 0.0, 8.0, 0.05],
+    hi: [10.0, 10504.7, 1.0, 9.7421766, 0.5],
+    indices: "${data.target_indices}"
+  }

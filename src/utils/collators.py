@@ -57,10 +57,15 @@ class SummarizationCollator:
 
 class JEPACollator:
 
-    def __init__(self, preprocessing, num_patches, mask_cfg, training=True):
+    # CHANGED 2026-05-13: added `augmentations` parameter so that JEPA pretraining
+    # actually applies the augmentations listed in cfg.training.augmentations.
+    # Previously augmentations were loaded into self.augmentations by the experiment
+    # but never forwarded here and never applied.
+    def __init__(self, preprocessing, num_patches, mask_cfg, augmentations=None, training=True):
         self.preprocessing = preprocessing
         self.num_patches = num_patches
         self.mask_cfg = mask_cfg
+        self.augmentations = augmentations if augmentations is not None else []
         self.training = training
 
     def __call__(self, batch):
@@ -68,6 +73,14 @@ class JEPACollator:
         # preprocess images
         for transform in self.preprocessing["x"]:
             batch.images = transform.forward(batch.images)
+
+        # CHANGED 2026-05-13: apply augmentations on the training split only,
+        # after preprocessing and before mask sampling. Mirrors SupervisedCollator.
+        # Teacher and student see the same augmented image because JEPA.batch_loss
+        # passes one `images` tensor to both encoders.
+        if self.training:
+            for aug in self.augmentations:
+                batch.images = aug(batch.images)
 
         # sample masks
         tgt_masks, ctx_masks = jepa_mask(

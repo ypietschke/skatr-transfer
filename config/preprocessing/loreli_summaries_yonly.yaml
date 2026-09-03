@@ -1,0 +1,9 @@
+x: []
+
+y:
+  - {
+    _target_: src.utils.transforms.Center,
+    lo: [0.1, 738.9, 0.0, 8.0, 0.05],
+    hi: [10.0, 10504.7, 1.0, 9.7421766, 0.5],
+    indices: "${data.target_indices}"
+  }

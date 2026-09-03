@@ -1,0 +1,13 @@
+name: loreli_ds_zfull_aastar_mod
+# Loreli II at the full native z range (z=5..15) with SKA1-Low AA* 'mod'
+# thermal noise + foreground-wedge cut injected at native resolution
+# (see processing/add_noise_loreli.py).
+dir: /pfs/10/work/hd_pt254-skatr/21cmSims/loreli_downsampled_aastar_mod
+image_shape: [32, 32, 576]
+num_params: 5
+param_names:
+  - f_x
+  - tau
+  - r_H
+  - logMmin
+  - f_esc_post

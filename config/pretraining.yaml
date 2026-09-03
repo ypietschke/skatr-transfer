@@ -12,7 +12,8 @@ model:
   sim: l1
   init_tgt_as_ctx: True
   momentum_schedule: False
-  ema_momentum: 0.9997
+  ema_momentum: 0.9997 #0.9997
+  use_correct_ema_update: False
 
 net: # encoders
   use_mask_token: False
@@ -34,10 +35,11 @@ data:
   test_frac: 0.
 
 training:
+  save_freq: 50
   augment: True
   augmentations:
     - {_target_: src.utils.augmentations.RotateAndReflect, include_identity: True}
-    - {_target_: src.utils.augmentations.Shift}
+    #- {_target_: src.utils.augmentations.Shift}
   epochs: 1000
   lr: 0.001
   batch_size: 64

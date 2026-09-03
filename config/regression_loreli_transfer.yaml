@@ -1,0 +1,43 @@
+run_name: regression_loreli_pretrained_${dataset.name}
+
+experiment:
+  _target_: src.experiments.RegressionExperiment
+
+model:
+  _target_: src.models.Regressor
+  loss: l1
+  net: ${net}
+  summary_net: ${summary_net}
+
+data:
+  target_indices: [0,1,2,3,4]
+  val_frac: 0.10
+  test_frac: 0.15
+
+net:
+  out_channels: 5
+  backbone_dir: /pfs/10/work/hd_pt254-skatr/skatr/runs/backbones/pretraining_transfer_ds_2026-03-12_17-31-11_ep49
+  frozen: True
+  add_head: True
+  head:
+    _target_: src.networks.MLP
+    in_channels: 360
+    hidden_channels:
+      - 360
+    out_channels: 5
+    act: relu
+    out_act: sigmoid
+    drop: 0.
+
+training:
+  epochs: 15
+  lr: 3.e-4
+  batch_size: 64
+  test_batch_size: 256
+
+defaults:
+  - default
+  - dataset: loreli_ds
+  - preprocessing: loreli_xandy
+  - net: pretrained_vit
+  - _self_

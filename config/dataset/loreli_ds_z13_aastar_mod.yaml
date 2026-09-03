@@ -1,0 +1,13 @@
+name: loreli_ds_z13_aastar_mod
+# Loreli II downsampled NPZ from the SKA1-Low AA* 'mod' noisy native mock
+# lc_128_aastar_mod, cropped along LOS to z=5.0..13.15 to match the
+# 21cmFAST_z12 source range and the clean cropped Loreli dataset.
+dir: /pfs/10/work/hd_pt254-skatr/21cmSims/loreli_downsampled_z13_aastar_mod
+image_shape: [32, 32, 576]
+num_params: 5
+param_names:
+  - f_x
+  - tau
+  - r_H
+  - logMmin
+  - f_esc_post

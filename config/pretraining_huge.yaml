@@ -1,12 +1,14 @@
 net:
+  patch_shape: [4,4,12]
   depth: 6
   hidden_dim: 360
   num_heads: 6
 
 training:
+  gradient_norm: 10.0
   scheduler:
     _target_: torch.optim.lr_scheduler.OneCycleLR
-    max_lr: 0.001
+    max_lr: 0.001 #0.001
 
 defaults:
   - pretraining

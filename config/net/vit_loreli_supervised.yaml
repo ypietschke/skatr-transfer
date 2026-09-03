@@ -1,0 +1,44 @@
+_target_: src.networks.ViT
+in_shape: ${dataset.image_shape}
+out_channels: ${dataset.num_params}
+
+patch_shape: [4, 4, 12]
+hidden_dim: 360
+depth: 6
+num_heads: 6
+mlp_ratio: 2.0
+attn_drop: 0.
+proj_drop: 0.
+mlp_drop: 0.
+learn_pos_encoding: True
+out_act: sigmoid
+use_mask_token: False
+checkpoint_grads: False
+
+use_head: True
+head:
+  _target_: src.networks.MLP
+  in_channels: ${net.hidden_dim}
+  hidden_channels:
+    - ${net.hidden_dim}
+  out_channels: ${net.out_channels}
+  act: relu
+  out_act: ${net.out_act}
+  drop: ${net.mlp_drop}
+
+use_adaptor: False
+adaptor:
+  channels: 4
+  downsample_factor: 5
+  replace_embedding: False
+  batchnorm: False
+  init_pool_as_mean: False
+
+use_input_conv: False
+input_conv:
+  channels: 8
+  kernel1: [4, 4, 5]
+  stride1: [2, 2, 3]
+  kernel2: [3, 3, 4]
+  stride2: [2, 2, 3]
+  conv_out_dim: 640

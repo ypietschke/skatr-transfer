@@ -35,6 +35,26 @@ class Center:
         return x * (self.hi - self.lo) + self.lo
 
 
+class ShiftMedian:
+    """Shift the input by the median value of the training data. This is a special case of Center where lo=hi=median"""
+
+    def __init__(self, median, indices=None, dtype=torch.float32):
+        self.median = torch.tensor(median, dtype=dtype)
+        self.indices = indices
+        if indices is not None:
+            self.median = self.median[indices]
+
+    def forward(self, x):
+        self.median = self.median.to(x.device)
+        if self.indices is not None:
+            x = x[..., sorted(self.indices)]
+        return x - self.median
+
+    def reverse(self, x):
+        self.median = self.median.to(x.device)
+        return x + self.median
+
+
 class Clamp:
     """Apply a symmetric log scaling to the input."""
 

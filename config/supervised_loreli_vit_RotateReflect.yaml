@@ -1,0 +1,15 @@
+# Supervised ViT on Loreli with RotateAndReflect-only augmentation (no Shift).
+#
+# Identical to supervised_loreli_vit.yaml except augment is enabled with the
+# D4 RotateAndReflect group only. Used for the per-budget R+R-only ablation
+# parallel to the SKATR and ViT(21cmFAST) R+R-only runs. See
+# submit_supervised_loreli_RotateReflect_all.sh for the budget sweep.
+
+defaults:
+  - supervised_loreli_vit
+  - _self_
+
+training:
+  augment: True
+  augmentations:
+    - {_target_: src.utils.augmentations.RotateAndReflect, include_identity: True}

@@ -8,7 +8,7 @@ plot: True
 use_gpu: True
 device: 0
 use_tf32: True
-use_amp: False
+use_amp: false
 submit: False
 dry_run: False
 
@@ -32,7 +32,7 @@ training:
   optimizer:
     _target_: torch.optim.AdamW
     weight_decay: 1.e-3
-  use_amp: False
+  use_amp: false
   scheduler: {}
   augment: True
   augmentations:

@@ -1,0 +1,16 @@
+name: transfer_ds
+dir: /pfs/10/work/hd_pt254-skatr/21cmSims/lightcones_downsampled_z12
+image_shape: [32, 32, 576]
+num_params: 7
+param_names:
+    - $\log_{10}T_{vir}$
+    - $f_{esc,10}$
+    - $f_{star,10}$
+    - $\alpha_{esc}$
+    - $\alpha_{star}$
+    - $\log_{10}L_X$
+    - $\zeta$
+  
+
+
+

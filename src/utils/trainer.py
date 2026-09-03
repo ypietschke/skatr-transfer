@@ -98,14 +98,18 @@ class Trainer:
 
             # train
             self.train_one_epoch()
+            train_loss = self.epoch_train_losses[-1]
+            log.info(f"Epoch {self.epoch + 1}/{self.cfg.epochs} - Train Loss: {train_loss:.6f}")
 
             # validate at given frequency
             if (self.epoch + 1) % self.cfg.validate_freq == 0:
 
                 self.validate_one_epoch()
+                val_loss = self.epoch_val_losses[-1]
+                log.info(f"Epoch {self.epoch + 1}/{self.cfg.epochs} - Val Loss: {val_loss:.6f}")
 
                 # check whether validation loss improved
-                if (val_loss := self.epoch_val_losses[-1]) < self.best_val_loss:
+                if val_loss < self.best_val_loss:
                     self.patience_counter = 0
 
                     if self.cfg.save_best_epoch:  # save best checkpoint

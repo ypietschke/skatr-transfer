@@ -1,0 +1,30 @@
+# Preprocessing for the 21cmFAST-supervised ViT experiment. Identical x-chain
+# to loreli_supervised (so input distribution matches what SKATR pretrains
+# on); y-chain provides the Center transform for the 7 21cmFAST parameters.
+#
+# lo/hi values are taken directly from min/max scan of labels.memmap on
+# /pfs/10/work/hd_pt254-skatr/21cmSims/lightcones_downsampled_z12/ (67,325
+# lightcones). Order matches dataset/transfer_ds.yaml param_names:
+#   index 0  log T_vir       (DUMMY parameter, excluded via data.target_indices)
+#   index 1  f_esc,10
+#   index 2  f_star,10
+#   index 3  alpha_esc
+#   index 4  alpha_star
+#   index 5  log L_X
+#   index 6  zeta
+#
+# Center takes indices=${data.target_indices} so it subsamples both the
+# labels and the lo/hi vectors to whichever subset we choose to learn.
+
+x:
+  - {_target_: src.utils.transforms.AddSingletonChannel}
+  - {_target_: src.utils.transforms.ShiftMedian, median: -2.0}
+  - {_target_: src.utils.transforms.Clamp}
+
+y:
+  - {
+    _target_: src.utils.transforms.Center,
+    lo: [4.0, -3.0, -3.0, -0.8, -0.3, 38.0, 100.0],
+    hi: [5.3,  0.0,  0.0,  0.5,  0.9, 42.0, 1500.0],
+    indices: "${data.target_indices}",
+  }

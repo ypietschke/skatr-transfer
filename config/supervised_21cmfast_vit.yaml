@@ -1,0 +1,79 @@
+# Supervised ViT on 21cmFAST data — Experiment A from agent/todo.md.
+#
+# Purpose: isolate the SSL-vs-supervised question by training the SAME ViT
+# architecture as SKATR on the SAME 67k 21cmFAST lightcones, but with a
+# supervised regression objective on the 21cmFAST parameters. The trained
+# backbone (head removed) is then used to summarise Loreli lightcones, which
+# feed the same EoRFlow CFM head used for the SKATR pipeline. This isolates
+# the pretraining objective from the pretraining data scale.
+#
+# T_vir (index 0) is excluded from the regression target because it is a
+# dummy parameter in this dataset — the lightcones contain no information
+# about it. Learning the remaining 6 params: f_esc,10, f_star,10, alpha_esc,
+# alpha_star, log L_X, zeta.
+
+run_name: supervised_vit_${dataset.name}
+
+experiment:
+  _target_: src.experiments.RegressionExperiment
+
+# Skip the final test-set evaluation step (we set test_frac=0.0 to match
+# SKATR's pretraining split, so there is no held-out 21cmFAST test set).
+# Downstream evaluation happens on Loreli via embed + CFM, not here.
+evaluate: False
+plot: False
+
+model:
+  _target_: src.models.Regressor
+  loss: l2
+  net: ${net}
+  summary_net: null
+
+data:
+  # Predict the 6 non-dummy 21cmFAST parameters (drop index 0 = log T_vir).
+  target_indices: [1, 2, 3, 4, 5, 6]
+  val_frac: 0.10
+  # Pretraining-style split (no held-out test set on 21cmFAST itself);
+  # transfer quality is measured on Loreli downstream.
+  test_frac: 0.0
+  on_gpu: False
+  summarize: False
+  num_workers: 4
+  summary_batch_size: 64
+
+training:
+  epochs: 100
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  batch_size: 64
+  test_batch_size: 128
+  # Match the strongest existing supervised baseline (augmented Loreli ViT)
+  # and the upcoming with-augmentation SKATR re-pretraining.
+  augment: True
+  augmentations:
+    - {_target_: src.utils.augmentations.RotateAndReflect, include_identity: True}
+    #- {_target_: src.utils.augmentations.Shift}
+  save_freq: 50
+  use_amp: False
+
+  gradient_norm: 10.0
+
+  scheduler:
+    _target_: torch.optim.lr_scheduler.OneCycleLR
+    max_lr: ${training.lr}
+    total_steps: null
+
+defaults:
+  - default
+  - dataset: transfer_ds
+  - preprocessing: transfer_supervised
+  - net: vit_loreli_supervised
+  - _self_
+
+# Override the ViT output dimensionality. dataset.num_params stays at 7
+# (the dataset really does have 7 params on disk), but we only regress on 6
+# of them, so the head must emit 6 numbers. data.target_indices controls
+# both which labels to keep and which corresponding lo/hi entries the Center
+# transform uses.
+net:
+  out_channels: 6

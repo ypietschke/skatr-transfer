@@ -4,12 +4,10 @@
 export SKATR_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # modules
-ml purge
-ml cuda/12.8 cudnn/11.6 anaconda/3.0
+module load mpi/openmpi/4.1-gnu-14.2
+module load devel/miniforge  
 
-# conda
-eval "$(conda shell.bash hook)"
-conda activate skatr
+conda activate eor_env
 
 # auto completion
 eval "$(python main.py -sc install=bash)"

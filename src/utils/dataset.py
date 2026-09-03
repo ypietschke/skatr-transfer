@@ -57,7 +57,7 @@ class LightconeData:
         """
 
         # find all numpy records
-        files = glob(os.path.join(path, "run*.npz"))
+        files = glob(os.path.join(path, "lightcone_*.npz"))
         size = len(files)
 
         # iterate keys and fill tensors

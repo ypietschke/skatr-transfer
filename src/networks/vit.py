@@ -433,7 +433,9 @@ class PretrainedViT(ViT):
         # read backbone config & state
         bcfg = get_prev_config(backbone_dir)
         model_state = torch.load(
-            os.path.join(backbone_dir, "model.pt"), weights_only=False
+            os.path.join(backbone_dir, "model.pt"),
+            map_location="cpu",
+            weights_only=False,
         )["model"]
         net_state = {
             k.replace("net.", ""): v
@@ -441,12 +443,19 @@ class PretrainedViT(ViT):
             if k.startswith("net.")
         }
 
+        # Supervised checkpoints include task head weights; drop them when
+        # using the backbone as a pure summary network.
+        if drop_head:
+            net_state = {
+                k: v for k, v in net_state.items() if not k.startswith("head.")
+            }
+
         # initialize ViT from saved net config, with current overrides
         saved_net_cfg = OmegaConf.to_object(bcfg.net)
         saved_net_cfg.pop("_target_", None)
         saved_net_cfg.update(kwargs)
         super().__init__(**saved_net_cfg)
-        self.load_state_dict(net_state)
+        self.load_state_dict(net_state, strict=not drop_head)
 
         # delete the head module used in pretraining
         if drop_head and hasattr(self, "head"):

@@ -1,0 +1,29 @@
+run_name: regression_loreli_summaries_${dataset.name}
+
+experiment:
+  _target_: src.experiments.RegressionExperiment
+
+model:
+  _target_: src.models.Regressor
+  loss: l1
+  net: ${net}
+  summary_net: ${summary_net}
+
+data:
+  target_indices: [0,1,2,3,4]
+  val_frac: 0.10
+  test_frac: 0.15
+
+training:
+  epochs: 1000
+  lr: 5.e-4
+  batch_size: 256
+  test_batch_size: 512
+  augment: False
+
+defaults:
+  - default
+  - dataset: loreli_summaries_ds
+  - preprocessing: loreli_summaries_yonly
+  - net: mlp_loreli_summaries
+  - _self_

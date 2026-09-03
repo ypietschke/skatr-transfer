@@ -1,0 +1,14 @@
+name: loreli_ds_zfull
+# Loreli II downsampled NPZ at the FULL native z range (z=5..15) -- no LOS
+# cropping. The 21cmFAST source encoder was pretrained on z=5..13.15, so the
+# high-z 14% of this LOS axis lies outside the encoder's training distribution.
+# This is part of the cross-domain transfer we test.
+dir: /pfs/10/work/hd_pt254-skatr/21cmSims/loreli_downsampled
+image_shape: [32, 32, 576]
+num_params: 5
+param_names:
+  - f_x
+  - tau
+  - r_H
+  - logMmin
+  - f_esc_post
