@@ -1,75 +1,65 @@
-# skatr
-A general-purpose summary transformer for processing lightcones observed by the Square Kilometer Array (SKA).
+# skatr-transfer
 
-Read the arXiv paper: [2410.18899](https://arxiv.org/abs/2410.18899)
+Cross-simulator transfer of self-supervised SKATR summaries for 21cm parameter inference.
 
-## Getting started
-- Clone the repository
-- Create the conda environment:
+Paper: [arXiv:2608.26354](https://arxiv.org/abs/2608.26354) — *Cross-simulator transfer with foundation model summaries: Towards robust SKA-era reionization inference*.
+
+## Based on SKATR
+
+This repository extends [heidelberg-hepml/skatr](https://github.com/heidelberg-hepml/skatr), a general-purpose summary transformer for lightcones observed by the Square Kilometre Array. SKATR is a 3D Vision Transformer pretrained label-free with a Joint Embedding Predictive Architecture (JEPA) objective; it maps a lightcone to a 360-dimensional summary that downstream models consume in place of the raw data.
+
+> A. Ore, C. Heneka and T. Plehn, *SKATR: A self-supervised summary transformer for SKA*, [SciPost Phys. **18**, 155 (2025)](https://scipost.org/SciPostPhys.18.5.155).
+
+The upstream repository documents the general experiment framework. Only what differs is described below.
+
+## The transfer experiments
+
+SKATR is pretrained once on cheap semi-numerical `21cmFAST` lightcones and then frozen. Here that frozen encoder is applied to lightcones from a physically distinct hydrodynamical radiative-transfer simulator (Loreli II) with a disjoint parameter set, first noiseless and then under SKA AA\* thermal noise with foreground-wedge removal. The encoder is shown no target data, no target parameters and no noise at any point.
+
+This repository covers the encoders and the summaries they produce: JEPA pretraining, the supervised ViT baselines used for comparison, the Loreli data pipeline and preprocessing, and the dataset-embedding scripts in `transfer/`. Posterior inference on the resulting summaries is run with the conditional flow matching head of [EoRFlow](https://github.com/astro-ML/EoRFlow).
+
+## Usage
+
 ```
 conda env create -f env.yaml
+python main.py -cn <config> data.dir=/path/to/lightcones
 ```
 
-## Basic usage
-This project uses [Hydra](https://hydra.cc/docs/intro/) to configure experiments. The default settings are given in `config/default.yaml` and each can be overridden via the command line.
+Experiments are configured with [Hydra](https://hydra.cc/docs/intro/). Defaults live in `config/default.yaml` and any setting can be overridden from the command line.
 
-The script `main.py` is used to run experiments. Each experiment consists of training/evaluating a model as well as creating plots. For example, to run a regression experiment, simply use:
-```
-python main.py -cn regression data.dir=/path/to/light/cones
-```
-In the above, `-cn` is short for `--config_name`.
+| Config | Pipeline |
+| :--- | :--- |
+| `pretraining` | SKATR, self-supervised JEPA pretraining on 21cmFAST |
+| `supervised_21cmfast_vit` | ViT(21cmFAST), supervised source baseline |
+| `supervised_loreli_vit` | ViT(Loreli), supervised in-domain baseline |
+| `supervised_loreli_vit_RotateReflect` | ViT(Loreli, R+R), augmented in-domain baseline |
+| `regression_loreli_transfer` | regression on frozen SKATR summaries |
 
-Experiment settings can be adjusted from the command line. For example, to select a different neural network use:
-```
-python main.py ... net=cnn
-```
+## Models
 
-The following is a description of currently-implemented experiments:
-| Experiment name | Description | Compatible networks |
-| :-------- | :------- | :------- |
-| `jepa` | Trains a network in a self-supervised manner in order to learn informative lightcone summaries. | `vit` |
-| `regression` | Trains a network to predict simulation parameters given a light cone. The model performance is measured in terms of a normalized mean relative absolute error. Produces parameter recovery plots. | `cnn`, `vit` |
-| `summarized_regression` | Runs a regression experiment based on summarized light cones. | `mlp` + `pretrained_vit` |
-| `inference` | Trains a normalizing flow to fit the posterior distribution for simulation parameters conditioned on a given light cone (Neural Posterior Estimation). Light cones are summarized by a network before being passed to the generative model. Produces triangle posterior plots for a selection of test light cones and a coverage calibration plot. | `inn` |
+Pretrained weights will be released on Zenodo and linked here.
 
-## Specifying a summary network
-The experiments `inference` and `summarized_regression` make use of a summary network. The default architecture for `inference` is `vit`, but this can be changed with:
-```
-python main.py -cn inference ... net@summary_net=cnn
-```
-In this case, a CNN will be trained jointly with the normalizing flow.
+## Citation
 
-To initialise the summary network from a pretrained `vit`, use:
-```
-python main.py ... net@summary_net=pretrained_vit summary_net.backbone_dir=/path/to/pretraing/exp
-```
-By default, the weights will be loaded then frozen.
+```bibtex
+@article{pietschke2026transfer,
+  title         = {Cross-simulator transfer with foundation model summaries:
+                   Towards robust {SKA}-era reionization inference},
+  author        = {Pietschke, Yannic and Heneka, Caroline and Ore, Ayodele
+                   and Meriot, Romain},
+  year          = {2026},
+  eprint        = {2608.26354},
+  archivePrefix = {arXiv},
+  primaryClass  = {astro-ph.CO},
+}
 
-When using a summary network, there is also the option to create a summarized dataset:
+@article{ore2025skatr,
+  title   = {{SKATR}: A self-supervised summary transformer for {SKA}},
+  author  = {Ore, Ayodele and Heneka, Caroline and Plehn, Tilman},
+  journal = {SciPost Phys.},
+  volume  = {18},
+  pages   = {155},
+  year    = {2025},
+  doi     = {10.21468/SciPostPhys.18.5.155},
+}
 ```
-python main.py ... data.summarize=True
-```
-However, it only makes sense to do this if the summary network is pretrained.
-
-
-## Continuing an experiment
-One often needs to re-run a previous experiment. This can be achieved simply from the command line. Common examples include:
-
-- Continuing training from a saved checkpoint:
-```
-python main.py -cn <prev_config_name> prev_exp_dir=/path/to/prev/exp training.warm_start=True  
-python main.py ... training.warm_start_epoch=30
-```
-- Repeating evaluation and/or plotting from using a saved model:
-```
-python3 main.py -cn <prev_config_name> prev_exp_dir=/path/to/prev/exp train=False evaluate=False 
-```
-The specific configuration will be loaded from the previous experiment. Command line overrides are also applied.
-
-## Further settings
-The following is a description of parameters in `config/default.yaml` that may not be self explanatory or can affect performance.
-| Parameter name | Description |
-| :------- | :------- |
-| `data.file_by_file` | Whether to save memory by reading each light cone from disk when forming a batch. |
-|  `data.summarize` | Whether to summarize light cones upfront, to avoid repeated calls of the summary network. |
-| `submit` | Whether or not to submit the experiment as a job on a cluster. Submission configuration is controlled through the `cluster` parameter group. |
