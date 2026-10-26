@@ -18,6 +18,29 @@ SKATR is pretrained once on cheap semi-numerical `21cmFAST` lightcones and then 
 
 This repository covers the encoders and the summaries they produce: JEPA pretraining, the supervised ViT baselines used for comparison, the Loreli data pipeline and preprocessing, and the dataset-embedding scripts in `transfer/`. Posterior inference on the resulting summaries is run with the conditional flow matching head of [EoRFlow](https://github.com/astro-ML/EoRFlow).
 
+## Trained weights
+
+The encoders behind the paper are archived on Zenodo at
+[doi.org/10.5281/zenodo.23597896](https://doi.org/10.5281/zenodo.23597896)
+(CC BY 4.0). The deposit holds the frozen SKATR encoder, the supervised
+ViT(21cmFAST) and ViT(Loreli) baselines in their noiseless, noise-trained and
+Rotate-and-Reflect variants, and the canonical Loreli II test split.
+
+Each archive unpacks to a directory holding `model.pt`, the training
+configuration under `.hydra/`, the training log and the TensorBoard scalars.
+The configuration is read back to rebuild the architecture, so keep the
+directory intact:
+
+```python
+from src.networks.vit import PretrainedViT
+
+model = PretrainedViT(
+    backbone_dir="skatr_jepa_21cmfast",
+    frozen=True, drop_head=True, use_head=False, interp_pos_encoding=False,
+)
+# (B, 1, 32, 32, 576) -> (B, 3072, 360); the paper's summary is tokens.mean(1)
+```
+
 ## Usage
 
 ```

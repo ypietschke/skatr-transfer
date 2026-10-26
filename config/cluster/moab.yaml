@@ -1,6 +1,0 @@
-scheduler: moab
-queue: gpu
-pmem: 4gb
-time: '4:0:0'
-num_gpus: 1
-feature: v100

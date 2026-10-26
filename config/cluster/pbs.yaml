@@ -1,8 +1,0 @@
-scheduler: pbs
-queue: a30
-mem: 24gb
-vmem: 72gb
-time: '40:0:0'
-num_gpus: 1
-node: 1
-dependency: null

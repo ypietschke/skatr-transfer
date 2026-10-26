@@ -1,7 +1,0 @@
-_target_: src.networks.MLP
-in_channels: 144
-hidden_channels: [144]
-out_channels: 6
-act: relu
-out_act: null
-drop: False

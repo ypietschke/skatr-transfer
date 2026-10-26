@@ -1,7 +1,0 @@
-_target_: src.networks.MLP
-in_channels: 360
-hidden_channels: [360]
-out_channels: 5
-act: relu
-out_act: sigmoid
-drop: 0.
