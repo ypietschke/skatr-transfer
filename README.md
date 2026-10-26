@@ -56,11 +56,6 @@ Experiments are configured with [Hydra](https://hydra.cc/docs/intro/). Defaults 
 | `supervised_21cmfast_vit` | ViT(21cmFAST), supervised source baseline |
 | `supervised_loreli_vit` | ViT(Loreli), supervised in-domain baseline |
 | `supervised_loreli_vit_RotateReflect` | ViT(Loreli, R+R), augmented in-domain baseline |
-| `regression_loreli_transfer` | regression on frozen SKATR summaries |
-
-## Models
-
-Pretrained weights will be released on Zenodo and linked here.
 
 ## Citation
 
